@@ -19,12 +19,15 @@ const highlighter = await createHighlighter({
     JSON.parse(lunasHighlightingRules),
     JSON.parse(lunasHtmlHighlightingRules),
     "typescript",
+    "javascript",
     "css",
   ],
   themes: ["github-light"],
 });
 
 monaco.languages.register({ id: "lunas" });
+monaco.languages.register({ id: "javascript" });
+monaco.languages.register({ id: "css" });
 
 shikiToMonaco(highlighter, monaco);
 
@@ -60,11 +63,21 @@ import "@codingame/monaco-vscode-editor-api/esm/vs/basic-languages/xml/xml.contr
 import "@codingame/monaco-vscode-editor-api/esm/vs/basic-languages/javascript/javascript.contribution";
 
 import EditorWorker from "@codingame/monaco-vscode-editor-api/esm/vs/editor/editor.worker?worker";
+import JavaScriptWorker from "@codingame/monaco-vscode-editor-api/esm/vs/language/typescript/ts.worker?worker";
+import CSSWorker from "@codingame/monaco-vscode-editor-api/esm/vs/language/css/css.worker?worker";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 window.MonacoEnvironment = {
   getWorker(_: string, _label: string) {
+    console.log("getWorker called with label:", _label);
+    if (_label === "javascript") {
+      return new JavaScriptWorker();
+    }
+    if (_label === "css") {
+      return new CSSWorker();
+    }
+
     return new EditorWorker();
   },
 };
@@ -112,7 +125,6 @@ export async function ensureLunasClientForModel(
     worker.addEventListener("message", onReady);
   });
 
-  
   const reader = new BrowserMessageReader(worker);
   const writer = new BrowserMessageWriter(worker);
 
@@ -134,6 +146,7 @@ export async function ensureLunasClientForModel(
 }
 
 monaco.editor.onDidCreateModel((model) => {
+  if (model.getLanguageId() !== "lunas") return;
   ensureLunasClientForModel(model);
 });
 

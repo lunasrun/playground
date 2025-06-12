@@ -1,3 +1,4 @@
+<!-- THIS FILE IS FORKED FROM monaco-editor-vue3 -->
 <template>
   <div class="monaco-editor-vue3" :style="style"></div>
 </template>
@@ -51,15 +52,9 @@ export default defineComponent({
   },
   methods: {
     initMonaco() {
-      const model = monaco.editor.createModel(
-        "console.log('Hello Lunas');",
-        "lunas",
-        monaco.Uri.parse("inmemory://model/example.lunas")
-      );
-      this.$emit('editorWillMount', monaco)
       const { value, language, theme, options } = this
+      this.$emit('editorWillMount', monaco)
       this.editor = monaco.editor.create(this.$el, {
-        model,
         value: value,
         language: language,
         theme: theme,
