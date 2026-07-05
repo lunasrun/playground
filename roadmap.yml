@@ -53,7 +53,7 @@ milestones:
         status: done
       - id: language-server
         title: Wire Lunas LSP over a web worker (diagnostics, completion, hover, defs)
-        status: todo
+        status: done
 
   - id: deploy
     title: Deploy
