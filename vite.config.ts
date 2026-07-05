@@ -6,7 +6,7 @@ import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
 import path from "node:path";
 
-const prefix = `monaco-editor/esm/vs`;
+const prefix = `@codingame/monaco-vscode-editor-api/esm/vs`;
 
 // https://vitejs.dev/config/
 export default defineConfig({

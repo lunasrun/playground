@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import MonacoEditor from 'monaco-editor-vue3'
+import MonacoEditor from './components/MonacoEditor.vue'
 import { copyText } from './utils/copy'
 import './utils/monaco'
 import axios from 'axios'
@@ -22,6 +22,8 @@ const text = ref<LunasModuleFile[]>([
     content: '',
   }
 ])
+
+// import * as monaco from '@codingame/monaco-vscode-editor-api';
 
 const activeFile = ref(0)
 const codePreviewJs = ref('')
@@ -165,7 +167,13 @@ style:
     url.searchParams.delete('code')
     window.history.replaceState({}, '', url.toString())
   }
-})
+
+  // setTimeout(() => {
+  //   for (const model of monaco.editor.getModels()) {
+  //     ensureLunasClientForModel(model);
+  //   }
+  // }, 2000);
+});
 
 const iframeDoc = computed(
   () => {
