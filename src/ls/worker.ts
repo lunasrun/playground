@@ -12,7 +12,7 @@ import {
 } from "vscode-languageserver/browser";
 // @ts-expect-error — submodule TS, resolved & bundled by Vite (not typechecked).
 import { createServer } from "../../external/lunas-tools/packages/language-server/src/server.js";
-import init, { compile } from "../../wasm/web/lunas_wasm.js";
+import init, { compile, analyze } from "../../wasm/web/lunas_wasm.js";
 import wasmUrl from "../../wasm/web/lunas_wasm_bg.wasm?url";
 
 const worker = self as unknown as {
@@ -24,14 +24,22 @@ const reader = new BrowserMessageReader(worker as never);
 const writer = new BrowserMessageWriter(worker as never);
 const connection = createConnection(reader, writer);
 
-// The compiler loads asynchronously; until it's ready the server serves the
-// structural features (document symbols / folding) and skips diagnostics.
+// The wasm loads asynchronously; until it's ready the server serves the
+// structural features (document symbols / folding) and skips diagnostics /
+// navigation. Once loaded, `compile` powers diagnostics and `analyze` powers
+// hover / go-to-definition / references / highlight / rename.
 let compileFn: ((source: string) => unknown) | null = null;
+let analyzeFn: ((source: string) => unknown) | null = null;
 init(wasmUrl).then(() => {
   compileFn = (source: string) => compile(source);
+  analyzeFn = (source: string) => analyze(source);
 });
 
-createServer(connection, () => compileFn);
+createServer(
+  connection,
+  () => compileFn,
+  () => analyzeFn,
+);
 
 // Tell the main thread the worker script is up so the client attaches its
 // message reader before sending `initialize`.
