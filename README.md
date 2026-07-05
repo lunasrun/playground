@@ -1,34 +1,46 @@
-# Lunas Playground
+# lunas-playground
 
-## Introduction
+The in-browser editor & live preview for [Lunas](https://github.com/lunasrun/lunas)
+`.lunas` single-file components — **built with Lunas itself**. The playground UI
+is authored in `.lunas` and compiled by the real Lunas compiler.
 
-This is a playground for Lunas, a programming language that compiles to JavaScript.
-
-You can try it out at [Lunas Playground](https://lunas-dev.github.io/lunas-playground/).
-
-## Development
-
-## Project Setup
+## Getting started
 
 ```sh
-npm install
-touch Makefile.local # setup local Makefile
+# Node 22 (see .nvmrc); pnpm via corepack
+corepack enable
+git submodule update --init --recursive   # vendors external/lunas
+pnpm install
+pnpm wasm:build                            # build the compiler bindings once
+pnpm dev                                   # start the playground
 ```
 
-### Compile and Hot-Reload for Development
+Quality gate:
 
 ```sh
-npm run dev
+pnpm build && pnpm typecheck && pnpm test
 ```
 
-### Type-Check, Compile and Minify for Production
+## How it consumes Lunas
 
-```sh
-npm run build
-```
+Lunas is not published to npm yet, so the framework is vendored as a git
+submodule at `external/lunas` and consumed from there:
 
-### Lint with [ESLint](https://eslint.org/)
+- `package.json` depends on `lunas` (runtime) and `vite-plugin-lunas` (the Vite
+  plugin that compiles `.lunas`) via the `file:` protocol into the submodule.
+- `pnpm wasm:build` runs `wasm-pack` on `external/lunas/crates/lunas_wasm` into
+  `wasm/{node,web}` — the `node` target drives the Vite build, the `web` target
+  runs the compiler in the browser.
 
-```sh
-npm run lint
-```
+When Lunas publishes to npm, the two `file:` deps swap for pinned npm versions
+and the local wasm build goes away — see [`CLAUDE.md`](CLAUDE.md) for the
+compiler-seam design, rules, and workflow.
+
+## Status
+
+Scaffolded: a single Vite app compiling `.lunas` end-to-end. Feature work is
+tracked in [`roadmap.yml`](roadmap.yml).
+
+## License
+
+MIT

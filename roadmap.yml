@@ -1,0 +1,63 @@
+# lunas-playground roadmap — single source of truth.
+#
+# Statuses: done | in_progress | todo | deferred
+# Respect dependency order: scaffold -> playground UI -> editor/LSP -> deploy.
+# Each item is completed by a PR that also flips its status to `done` (touch
+# only your own item lines).
+
+meta:
+  updated: 2026-07-05
+  extension: ".lunas"
+
+milestones:
+  - id: scaffold
+    title: Lunas app scaffold
+    items:
+      - id: reset-to-lunas-app
+        title: Reset repo to a single Vite app; submodule external/lunas at codegen-complete main
+        status: in_progress
+      - id: consume-lunas
+        title: Consume lunas + vite-plugin-lunas via file: deps; wasm:build (node + web)
+        status: in_progress
+      - id: ci-quality-gate
+        title: CI builds wasm then build/typecheck/test; release-PR script test
+        status: in_progress
+      - id: release-automation
+        title: Auto release PR (main -> beta), PR labeling
+        status: done
+      - id: npm-swap
+        title: Swap file: deps for published npm lunas packages (post-publish)
+        status: deferred
+
+  - id: playground-ui
+    title: Playground UI in Lunas
+    items:
+      - id: app-shell
+        title: Material-ish app shell (reference archived Vue playground), no heavy effects
+        status: todo
+      - id: multi-file
+        title: VS Code-like multi-file management (tree, tabs, add/rename/delete, persistence)
+        status: todo
+      - id: live-compile
+        title: In-browser compile via web-target wasm worker + live preview
+        status: todo
+
+  - id: editor-lsp
+    title: Editor + language server
+    items:
+      - id: monaco
+        title: Monaco editor integration
+        status: todo
+      - id: syntax-highlight
+        title: TextMate/shiki syntax highlighting for .lunas (restore grammar from history)
+        status: todo
+      - id: language-server
+        title: Wire Lunas LSP over a web worker (diagnostics, completion, hover, defs)
+        status: todo
+
+  - id: deploy
+    title: Deploy
+    items:
+      - id: gh-pages
+        title: GitHub Pages deploy on push to main (build incl. wasm, base path)
+        status: todo

@@ -1,39 +1,18 @@
-.vscode
-/*/**/node_modules
+# Dependencies
+node_modules/
 
-# Logs
-logs
+# Build output
+dist/
+*.tsbuildinfo
+
+# Lunas compiler bindings, rebuilt from the external/lunas submodule
+# (pnpm wasm:build). Node target drives the Vite build; web target runs in the
+# browser playground.
+wasm/
+
+# Logs & OS cruft
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
 .DS_Store
-dist
-dist-ssr
-coverage
-*.local
 
-/cypress/videos/
-/cypress/screenshots/
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-src/wasm/*
-src/runtime/index.ts
-
-*.env
-!*.example.env
-
-**/*.local.*
+# Background subagent worktrees
+.claude/worktrees/
