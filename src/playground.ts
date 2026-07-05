@@ -6,6 +6,7 @@
 // components.
 import { buildPreview, initCompiler, type LunasFile, type PreviewBuild } from "./preview/engine.js";
 import { DEFAULT_FILES, SAMPLES, type Sample } from "./samples.js";
+import { initEditor, type EditorHandle } from "./editor/monaco.js";
 
 const STORAGE_KEY = "lunas-playground.files.v1";
 
@@ -29,12 +30,32 @@ function saveFiles(files: LunasFile[]): void {
   }
 }
 
+// A single Monaco instance drives the editor pane; the Lunas UI mounts it once
+// (after the host element is in the DOM) and swaps its content on file switch.
+let editor: EditorHandle | null = null;
+
+async function mountEditor(
+  hostId: string,
+  value: string,
+  onChange: (value: string) => void,
+): Promise<void> {
+  const host = document.getElementById(hostId);
+  if (!host || editor) return;
+  editor = await initEditor(host, value, onChange);
+}
+
+function setEditorValue(value: string): void {
+  editor?.setValue(value);
+}
+
 export interface PlaygroundApi {
   loadFiles(): LunasFile[];
   saveFiles(files: LunasFile[]): void;
   build(files: LunasFile[], activeName: string): Promise<PreviewBuild>;
   samples(): Sample[];
   initCompiler(): Promise<unknown>;
+  initEditor(hostId: string, value: string, onChange: (value: string) => void): Promise<void>;
+  setEditorValue(value: string): void;
 }
 
 export const api: PlaygroundApi = {
@@ -43,6 +64,8 @@ export const api: PlaygroundApi = {
   build: (files, activeName) => buildPreview(files, activeName),
   samples: () => SAMPLES,
   initCompiler,
+  initEditor: mountEditor,
+  setEditorValue,
 };
 
 declare global {

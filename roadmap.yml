@@ -47,10 +47,10 @@ milestones:
     items:
       - id: monaco
         title: Monaco editor integration
-        status: todo
+        status: done
       - id: syntax-highlight
         title: TextMate/shiki syntax highlighting for .lunas (restore grammar from history)
-        status: todo
+        status: done
       - id: language-server
         title: Wire Lunas LSP over a web worker (diagnostics, completion, hover, defs)
         status: todo

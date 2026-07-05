@@ -1,3 +1,6 @@
 [submodule "external/lunas"]
 	path = external/lunas
 	url = https://github.com/lunasrun/lunas.git
+[submodule "external/lunas-tools"]
+	path = external/lunas-tools
+	url = https://github.com/lunasrun/tools.git

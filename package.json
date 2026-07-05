@@ -22,7 +22,10 @@
     "test": "node --test \"test/**/*.test.mjs\""
   },
   "dependencies": {
-    "lunas": "file:external/lunas/packages/lunas"
+    "@shikijs/monaco": "^4.3.1",
+    "lunas": "file:external/lunas/packages/lunas",
+    "monaco-editor": "^0.55.1",
+    "shiki": "^4.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.19.0",
