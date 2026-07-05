@@ -16,5 +16,6 @@
     "verbatimModuleSyntax": true,
     "noEmit": true
   },
-  "include": ["src", "vite.config.ts", "test"]
+  "include": ["src", "vite.config.ts", "test"],
+  "exclude": ["src/ls/worker.ts"]
 }

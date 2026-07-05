@@ -1,34 +1,36 @@
-// Monaco editor + TextMate syntax highlighting for `.lunas`.
+// Monaco editor (on @codingame/monaco-vscode-editor-api) with:
+//   - TextMate syntax highlighting from the real Lunas grammar (via shiki), and
+//   - the Lunas language server over a web worker (monaco-languageclient), so
+//     diagnostics / symbols / folding — and future hover/completion/definition —
+//     work through the LSP protocol.
 //
-// Highlighting reuses the real Lunas TextMate grammar from the `lunasrun/tools`
-// language-tooling repo, vendored as the `external/lunas-tools` submodule (no
-// copy — single source of truth). shiki loads the grammar (which embeds
-// TypeScript / CSS / HTML) and drives Monaco's tokenizer via `shikiToMonaco`.
+// `monaco-editor` is aliased to @codingame/monaco-vscode-editor-api (see the
+// pnpm override), so shiki and this module share one monaco with the vscode
+// service layer that monaco-languageclient needs.
 import * as monaco from "monaco-editor";
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import { initServices } from "monaco-languageclient/vscode/services";
+import { MonacoLanguageClient } from "monaco-languageclient";
+import { BrowserMessageReader, BrowserMessageWriter } from "vscode-languageserver/browser";
 import { createHighlighter } from "shiki";
 import { shikiToMonaco } from "@shikijs/monaco";
+import LsWorker from "../ls/worker?worker";
 import lunasGrammar from "../../external/lunas-tools/packages/grammar/lunas.tmLanguage.json";
 import langConfig from "../../external/lunas-tools/packages/grammar/language-configuration.json";
 
 const LANG_ID = "lunas";
 const THEME = "github-light";
 
-// Monaco only needs its core editor worker here — highlighting comes from shiki
-// and language intelligence (later) from the Lunas language server, not from
-// Monaco's built-in TS/CSS services.
-(self as unknown as { MonacoEnvironment: monaco.Environment }).MonacoEnvironment = {
-  getWorker: () => new EditorWorker(),
-};
-
 let setupDone: Promise<void> | null = null;
 
 async function setup(): Promise<void> {
+  // Bring up the vscode service layer (languages / model / configuration / log),
+  // then register the Lunas language and its grammar.
+  await initServices({}, { caller: "lunas-playground" });
+
   monaco.languages.register({ id: LANG_ID, extensions: [".lunas"] });
 
   const highlighter = await createHighlighter({
     themes: [THEME],
-    // The Lunas grammar embeds these scopes, so shiki must know them too.
     langs: [
       { ...(lunasGrammar as object), name: LANG_ID } as never,
       "typescript",
@@ -46,6 +48,31 @@ async function setup(): Promise<void> {
     surroundingPairs: langConfig.surroundingPairs.map(([open, close]) => ({ open, close })),
     wordPattern: new RegExp(langConfig.wordPattern),
   });
+
+  startLanguageClient();
+}
+
+// Connect a MonacoLanguageClient to the lunas-ls worker. The client tracks every
+// `lunas` model, so diagnostics/symbols flow automatically once it's started.
+function startLanguageClient(): void {
+  const worker = new LsWorker();
+  worker.addEventListener("message", function onReady(event: MessageEvent) {
+    if ((event.data as { type?: string })?.type !== "ready") return;
+    worker.removeEventListener("message", onReady);
+
+    const reader = new BrowserMessageReader(worker);
+    const writer = new BrowserMessageWriter(worker);
+    const client = new MonacoLanguageClient({
+      name: "Lunas Language Client",
+      clientOptions: {
+        documentSelector: [{ language: LANG_ID }],
+        // Keep the session alive across transient errors.
+        errorHandler: { error: () => ({ action: 1 }), closed: () => ({ action: 2 }) },
+      },
+      messageTransports: { reader, writer },
+    });
+    client.start();
+  });
 }
 
 export interface EditorHandle {
@@ -55,8 +82,8 @@ export interface EditorHandle {
 
 /**
  * Mount a Monaco editor into `host`, seeded with `value`. `onChange` fires on
- * every edit with the current text (used to recompile the preview). Returns a
- * handle for programmatic updates (e.g. switching files).
+ * every edit (used to recompile the preview). Returns a handle for programmatic
+ * updates (e.g. switching files).
  */
 export async function initEditor(
   host: HTMLElement,
@@ -66,9 +93,9 @@ export async function initEditor(
   setupDone ??= setup();
   await setupDone;
 
+  const model = monaco.editor.createModel(value, LANG_ID, monaco.Uri.parse("inmemory://playground/App.lunas"));
   const editor = monaco.editor.create(host, {
-    value,
-    language: LANG_ID,
+    model,
     theme: THEME,
     automaticLayout: true,
     minimap: { enabled: false },
@@ -82,11 +109,11 @@ export async function initEditor(
 
   return {
     setValue(next: string) {
-      // Guard against clobbering the cursor when the value already matches.
       if (editor.getValue() !== next) editor.setValue(next);
     },
     dispose() {
       editor.dispose();
+      model.dispose();
     },
   };
 }
