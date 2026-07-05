@@ -60,4 +60,4 @@ milestones:
     items:
       - id: gh-pages
         title: GitHub Pages deploy on push to main (build incl. wasm, base path)
-        status: todo
+        status: done
