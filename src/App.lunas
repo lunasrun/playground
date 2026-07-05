@@ -1,23 +1,168 @@
 html:
-    <main class="app">
-        <h1>Lunas Playground</h1>
-        <p>Scaffold is live. Count: ${count}</p>
-        <button @click="increment()">+1</button>
-        <button @click="reset()">Reset</button>
-        <p :if="count == 0">Click the button to begin.</p>
-        <p :elseif="count > 5">You are on a roll!</p>
-        <p :else>Keep going.</p>
-    </main>
+    <div class="app">
+        <header class="topbar">
+            <span class="topbar__title">Lunas Playground</span>
+            <span class="topbar__spacer"></span>
+            <button class="btn btn--ghost" @click="openSamples()">Load samples</button>
+        </header>
 
-style:
-    .app { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; }
-    button { margin-right: 0.5rem; }
+        <div class="body">
+            <aside class="explorer">
+                <div class="explorer__head">
+                    <span>EXPLORER</span>
+                    <button class="icon-btn" title="New file" @click="addFile()">+</button>
+                </div>
+                <ul class="filelist">
+                    <li :for="f of files">
+                        <div class="file ${f.name == files[activeIndex].name ? 'file--active' : ''}">
+                            <button class="file__name" @click="selectFile(f.name)">${f.name}.lunas</button>
+                            <button class="icon-btn file__act" title="Rename" @click="renameFile(f.name)">✎</button>
+                            <button class="icon-btn file__act" title="Delete" @click="deleteFile(f.name)">✕</button>
+                        </div>
+                    </li>
+                </ul>
+            </aside>
+
+            <section class="editor">
+                <div class="tabs">
+                    <div class="tab tab--active">${files[activeIndex].name}.lunas</div>
+                </div>
+                <textarea id="code-editor" class="code" spellcheck="false" @input="onInput(event)"></textarea>
+            </section>
+
+            <section class="preview">
+                <div class="tabs">
+                    <button class="tab ${previewTab == 0 ? 'tab--active' : ''}" @click="setTab(0)">Preview</button>
+                    <button class="tab ${previewTab == 1 ? 'tab--active' : ''}" @click="setTab(1)">JavaScript</button>
+                    <button class="tab ${previewTab == 2 ? 'tab--active' : ''}" @click="setTab(2)">CSS</button>
+                </div>
+                <div class="preview__body">
+                    <div class="banner banner--error" :if="hasError"><pre>${errorMsg}</pre></div>
+                    <iframe class="frame" :if="previewTab == 0" title="preview" sandbox="allow-scripts" :srcdoc="previewDoc"></iframe>
+                    <pre class="codeview" :if="previewTab == 1">${compiledJs}</pre>
+                    <pre class="codeview" :if="previewTab == 2">${previewCss}</pre>
+                </div>
+            </section>
+        </div>
+
+        <div class="modal" :if="showSamples">
+            <div class="modal__card">
+                <div class="modal__title">Samples</div>
+                <ul class="samplelist">
+                    <li :for="s of samples">
+                        <button class="sample" @click="loadSample(s.name)">${s.name}</button>
+                    </li>
+                </ul>
+                <div class="modal__actions">
+                    <button class="btn btn--ghost" @click="closeSamples()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 script:
-    let count = 0
-    function increment() {
-        count = count + 1
+    let files = pg.loadFiles()
+    let activeIndex = 0
+    let previewTab = 0
+    let previewDoc = ""
+    let compiledJs = ""
+    let previewCss = ""
+    let errorMsg = ""
+    let hasError = false
+    let showSamples = false
+    let samples = pg.samples()
+
+    function setEditorValue() {
+        const el = document.getElementById("code-editor")
+        if (el) el.value = files[activeIndex].content
     }
-    function reset() {
-        count = 0
+
+    async function recompile() {
+        pg.saveFiles(files)
+        const active = files[activeIndex]
+        const res = await pg.build(files, active.name)
+        if (res.error) {
+            hasError = true
+            errorMsg = res.error
+            return
+        }
+        hasError = false
+        errorMsg = ""
+        previewDoc = res.doc
+        compiledJs = res.activeJs
+        previewCss = res.css
     }
+
+    function onInput(e) {
+        files[activeIndex].content = e.target.value
+        files = [...files]
+        recompile()
+    }
+
+    function selectFile(name) {
+        activeIndex = files.findIndex(f => f.name == name)
+        setEditorValue()
+        recompile()
+    }
+
+    function addFile() {
+        const name = prompt("New file name (without .lunas)")
+        if (!name) return
+        if (files.find(f => f.name == name)) {
+            alert("A file named " + name + " already exists.")
+            return
+        }
+        files = [...files, { name: name, content: "" }]
+        activeIndex = files.length - 1
+        setEditorValue()
+        recompile()
+    }
+
+    function renameFile(name) {
+        const i = files.findIndex(f => f.name == name)
+        const next = prompt("Rename file", name)
+        if (!next || next == name) return
+        if (files.find(f => f.name == next)) {
+            alert("A file named " + next + " already exists.")
+            return
+        }
+        files[i].name = next
+        files = [...files]
+        recompile()
+    }
+
+    function deleteFile(name) {
+        if (files.length <= 1) return
+        if (!confirm("Delete " + name + ".lunas?")) return
+        const i = files.findIndex(f => f.name == name)
+        files = files.filter((f, idx) => idx != i)
+        if (activeIndex >= files.length) activeIndex = files.length - 1
+        setEditorValue()
+        recompile()
+    }
+
+    function setTab(tab) {
+        previewTab = tab
+    }
+
+    function openSamples() {
+        showSamples = true
+    }
+
+    function closeSamples() {
+        showSamples = false
+    }
+
+    function loadSample(name) {
+        const s = samples.find(x => x.name == name)
+        if (!s) return
+        if (!confirm("Load sample '" + s.name + "'? This replaces your files.")) return
+        files = s.files.map(f => ({ name: f.name, content: f.content }))
+        activeIndex = 0
+        showSamples = false
+        setEditorValue()
+        recompile()
+    }
+
+    requestAnimationFrame(setEditorValue)
+    recompile()

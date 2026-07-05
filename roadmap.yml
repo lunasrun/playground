@@ -15,13 +15,13 @@ milestones:
     items:
       - id: reset-to-lunas-app
         title: Reset repo to a single Vite app; submodule external/lunas at codegen-complete main
-        status: in_progress
+        status: done
       - id: consume-lunas
         title: Consume lunas + vite-plugin-lunas via file: deps; wasm:build (node + web)
-        status: in_progress
+        status: done
       - id: ci-quality-gate
         title: CI builds wasm then build/typecheck/test; release-PR script test
-        status: in_progress
+        status: done
       - id: release-automation
         title: Auto release PR (main -> beta), PR labeling
         status: done
@@ -34,13 +34,13 @@ milestones:
     items:
       - id: app-shell
         title: Material-ish app shell (reference archived Vue playground), no heavy effects
-        status: todo
+        status: done
       - id: multi-file
         title: VS Code-like multi-file management (tree, tabs, add/rename/delete, persistence)
-        status: todo
+        status: done
       - id: live-compile
         title: In-browser compile via web-target wasm worker + live preview
-        status: todo
+        status: done
 
   - id: editor-lsp
     title: Editor + language server
