@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, beta]
+  pull_request:
+
+jobs:
+  quality:
+    name: wasm · build · typecheck · test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
+      - name: Install Rust toolchain (from submodule) + wasm target
+        working-directory: external/lunas/crates
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustup target add wasm32-unknown-unknown
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            external/lunas/crates/target
+          key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('external/lunas/crates/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-wasm-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Build the real compiler bindings, then the app (which compiles the
+      # .lunas UI through them). typecheck/test follow.
+      - name: Build wasm bindings
+        run: pnpm wasm:build
+
+      - name: Build
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Release-PR script tests
+        run: node --test .github/scripts/release-pr.test.mjs

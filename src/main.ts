@@ -1,19 +1,6 @@
-import './assets/main.css'
+import { attach } from "lunas";
+import App from "./App.lunas";
 
-import { createApp } from 'vue'
-import App from './App.vue'
-import init from './wasm'
-import 'vuetify/styles'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-import '@mdi/font/css/materialdesignicons.css'
-
-const vuetify = createVuetify({
-  components,
-  directives
-})
-
-await init()
-
-createApp(App).use(vuetify).mount('#app')
+// A compiled Lunas component's default export is a factory: call it to build a
+// detached root, then `attach` it to a host element in the DOM.
+attach(App(), document.getElementById("app")!);
