@@ -38,8 +38,10 @@ compiler-seam design, rules, and workflow.
 
 ## Status
 
-Scaffolded: a single Vite app compiling `.lunas` end-to-end. Feature work is
-tracked in [`roadmap.yml`](roadmap.yml).
+The playground works: a VS Code-like multi-file explorer, a live editor, and an
+in-browser compile + preview — all authored in `.lunas` and compiled by the real
+Lunas compiler. Next up is a Monaco editor with syntax highlighting and the
+language server (see [`roadmap.yml`](roadmap.yml)).
 
 ## License
 

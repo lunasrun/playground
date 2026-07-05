@@ -1,6 +1,13 @@
 import { attach } from "lunas";
+import { api } from "./playground.js";
 import App from "./App.lunas";
+import "./styles.css";
 
-// A compiled Lunas component's default export is a factory: call it to build a
-// detached root, then `attach` it to a host element in the DOM.
+// Install the playground API on the global object before the UI mounts: the
+// Lunas `script:` blocks reach it via `globalThis.pg` (they can't `import`).
+globalThis.pg = api;
+
+// Warm up the wasm compiler in the background so the first preview is snappy.
+api.initCompiler();
+
 attach(App(), document.getElementById("app")!);
