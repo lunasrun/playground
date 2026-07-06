@@ -27,7 +27,7 @@ html:
                 <div class="tabs">
                     <div class="tab tab--active">${files[activeIndex].name}.lunas</div>
                 </div>
-                <textarea id="code-editor" class="code" spellcheck="false" @input="onInput(event)"></textarea>
+                <div id="code-editor" class="code"></div>
             </section>
 
             <section class="preview">
@@ -73,8 +73,7 @@ script:
     let samples = pg.samples()
 
     function setEditorValue() {
-        const el = document.getElementById("code-editor")
-        if (el) el.value = files[activeIndex].content
+        pg.setEditorValue(files[activeIndex].content)
     }
 
     async function recompile() {
@@ -93,8 +92,8 @@ script:
         previewCss = res.css
     }
 
-    function onInput(e) {
-        files[activeIndex].content = e.target.value
+    function onEditorInput(value) {
+        files[activeIndex].content = value
         files = [...files]
         recompile()
     }
@@ -164,5 +163,5 @@ script:
         recompile()
     }
 
-    requestAnimationFrame(setEditorValue)
+    requestAnimationFrame(() => pg.initEditor("code-editor", files[activeIndex].content, onEditorInput))
     recompile()

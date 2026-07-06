@@ -47,17 +47,17 @@ milestones:
     items:
       - id: monaco
         title: Monaco editor integration
-        status: todo
+        status: done
       - id: syntax-highlight
         title: TextMate/shiki syntax highlighting for .lunas (restore grammar from history)
-        status: todo
+        status: done
       - id: language-server
         title: Wire Lunas LSP over a web worker (diagnostics, completion, hover, defs)
-        status: todo
+        status: done
 
   - id: deploy
     title: Deploy
     items:
       - id: gh-pages
         title: GitHub Pages deploy on push to main (build incl. wasm, base path)
-        status: todo
+        status: done

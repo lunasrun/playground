@@ -161,18 +161,12 @@ body {
   background: var(--bg);
 }
 
+/* Monaco editor host — Monaco fills and lays out inside it (automaticLayout). */
 .code {
   flex: 1;
   width: 100%;
-  border: none;
-  resize: none;
-  padding: 12px;
-  font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  tab-size: 4;
-  outline: none;
-  color: var(--text);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .preview__body {
